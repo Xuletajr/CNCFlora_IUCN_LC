@@ -42,25 +42,24 @@ treespp2_nodupl <- treespp2 %>%
 
 treespp2_nodupl %>% count(is.na(acceptedNameUsage), taxonomicStatus, nomenclaturalStatus)
 
+# Se o nome da sp está correto: scientificName - se não é aceito (deve incluir sinônimos)
 treespp3 <- treespp2_nodupl %>%
-    #new column final_name
-    #si el nombre está correcto: scientificName - si no el accepted (que debería ya incluir sinonimos)
     mutate(final_name = ifelse(
-        #taxonomicStatus == "NOME_ACEITO",
-        is.na(acceptedNameUsage),
-        scientificName, acceptedNameUsage)) %>%
+# TaxonomicStatus == "NOME_ACEITO",
+    is.na(acceptedNameUsage),
+    scientificName, acceptedNameUsage)) %>%
     mutate(final_ID = ifelse(
-        is.na(acceptedNameUsage),
-        taxonID, acceptedNameUsageID)) %>%
-#si no lo encuentra
+    is.na(acceptedNameUsage),
+    taxonID, acceptedNameUsageID)) %>%
+# Si no lo encuentra
     mutate(final_name = ifelse(is.na(taxonID), original_name, final_name)) %>%
     mutate(final_family = if_else(!is.na(family), family, Family)) %>%
-#new column notes
+# New column notes
     mutate(notes = if_else(is.na(taxonID),
                            "not found", "LFB")) %>%
-    #new column syn
+# New column syn
     mutate(tax_notes = if_else(
-        taxonomicStatus == "NOME_ACEITO" & nomenclaturalStatus == "NOME_CORRETO", "name ok", "")) %>%
+    taxonomicStatus == "NOME_ACEITO" & nomenclaturalStatus == "NOME_CORRETO", "name ok", "")) %>%
     mutate(tax_notes = if_else(taxonomicStatus == "SINONIMO", "synonym", tax_notes)) %>%
     mutate(tax_notes = if_else(is.na(taxonomicStatus), nomenclaturalStatus, tax_notes)) %>%
 
@@ -72,7 +71,7 @@ treespp3 <- treespp2_nodupl %>%
         original_ID = taxonID,
         scientificName = final_name,
         taxonID = final_ID) %>%
-    dplyr::select(original_family, original_name, name_in_Flora,original_ID,
+        dplyr::select(original_family, original_name, name_in_Flora,original_ID,
                   final_family, scientificName, taxonID,
                   vernacular_names,
                   notes, tax_notes, notes_fam
