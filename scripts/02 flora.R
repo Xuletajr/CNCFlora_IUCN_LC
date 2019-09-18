@@ -4,11 +4,11 @@ library(readxl)
 library(dplyr)
 library(flora)
 
-#read flora data
+# Read flora data
 flora <- read_csv("./ipt/all_flora.csv") %>% dplyr::select(-1)
 head(flora)
 
-# read original data----
+# Read original data----
 treespp <- read_excel("./data/LeastConcern_BrazilEndemics_original.xlsx", sheet = 1) %>%
     rename(scientificName = ScientificName) %>%
     mutate(nombre = purrr::map(scientificName, ~remove.authors(.)) %>%
@@ -36,7 +36,7 @@ treespp2 <- treespp %>%
 
 treespp2[645,] %>% View()
 
-# Excluindo nomes mal aplicados e não validamente publicados 
+# Exclui os nomes mal aplicados e não validamente publicados 
 treespp2_nodupl <- treespp2 %>%
     filter(!nomenclaturalStatus %in% c("NOME_MAL_APLICADO", "NOME_NAO_VALIDAMENTE_PUBLICADO"))
 
@@ -77,15 +77,19 @@ treespp3 <- treespp2_nodupl %>%
                   notes, tax_notes, notes_fam
                   )
 
+# Remove o nome dos autores do nome da espécie - essa colunaserá usada para unir as tabelas
 treespp3 <- treespp3 %>%
     mutate(nombre = purrr::map(scientificName, ~remove.authors(.)) %>%
                                     simplify2array())
+
 View(treespp3[642,])
+
+# Exporta a planilha de espécies com informações do Flora do Brasil-IPT
 write.csv(treespp3, "./results/names_flora1.csv")
 
-
+# Checar se todos os todos acceptednameusage são NAs
 treesp4 <- treespp3 %>%
-    left_join(flora) %>% select(acceptedNameUsage) %>% count(is.na(acceptedNameUsage))#todo los acceptednameusage están NA! bien.
+    left_join(flora) %>% select(acceptedNameUsage) %>% count(is.na(acceptedNameUsage))
 treesp4 <- treespp3 %>%
     left_join(flora) %>%
 dplyr::select(1:12, -c(13:37), 38:40, -c(41:46),47:49, -c(50:55))
