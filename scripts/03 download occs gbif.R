@@ -1,22 +1,20 @@
-#### Script BGCI unificado
-#le tudo ----
+# Ler os pacotes----
 library(dplyr)
-library("stringr")
-library("rgbif")
+library(stringr)
+library(rgbif)
 library(readxl)
 source("scripts/new_duplicated.R")
+
+# Ler a planilha de plantas
 treespp <- read.csv("./results/names_flora.csv", row.names = 1)
 treespp$nombre
 familias <- treespp$final_family
 especies <- treespp$nombre
 
-#extração de registros por espécie do gbif
+# Cria uma pasta para colocar os dados - extração de registros por espécie do gbif
 dir.create("output_final")
 
-#buscando registros de gbif----
-#i <- 371
-#por algun motivo no sirve el 371 sin nombtre
-
+# Buscando registros no gbif----
 for (i in 1:length(especies)) {
     dir.create(paste0("./output_final/",familias[i]), showWarnings = F)
     nome_arquivo <- paste0("./output_final/", familias[i],"/",familias[i],"_", especies[i],"_", "raw.csv")
@@ -47,11 +45,9 @@ for (i in 1:length(especies)) {
         }
     } else {
         warning(paste("No key found for", especies[i], "\n"))
+        }
     }
-    }
-    #query.i <- occ_search(scientificName = especies[i])
-
-        #as colunas que criam os comentários nem sempre existem:
+    # As colunas que criam os comentários nem sempre existem:
 
 }
 
