@@ -1,16 +1,18 @@
+# Read packages
 library(readr)
 library(readxl)
 library(dplyr)
 library(flora)
+
 #read flora data
 flora <- read_csv("./ipt/all_flora.csv") %>% dplyr::select(-1)
 head(flora)
+
 # read original data----
 treespp <- read_excel("./data/LeastConcern_BrazilEndemics_original.xlsx", sheet = 1) %>%
     rename(scientificName = ScientificName) %>%
     mutate(nombre = purrr::map(scientificName, ~remove.authors(.)) %>%
                simplify2array())
-
 
 treespp2 <- treespp %>%
     dplyr::select(Family, scientificName, nombre) %>%
@@ -31,7 +33,10 @@ treespp2 <- treespp %>%
            taxonRank,
            vernacular_names,
            nombre)
+
 treespp2[645,] %>% View()
+
+# Excluindo nomes mal aplicados e não validamente publicados 
 treespp2_nodupl <- treespp2 %>%
     filter(!nomenclaturalStatus %in% c("NOME_MAL_APLICADO", "NOME_NAO_VALIDAMENTE_PUBLICADO"))
 
