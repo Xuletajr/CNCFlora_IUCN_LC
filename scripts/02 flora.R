@@ -88,13 +88,15 @@ View(treespp3[642,])
 write.csv(treespp3, "./results/names_flora1.csv")
 
 # Checar se todos os todos acceptednameusage são NAs
-treesp4 <- treespp3 %>%
+treespp4 <- treespp3 %>%
     left_join(flora) %>% select(acceptedNameUsage) %>% count(is.na(acceptedNameUsage))
-treesp4 <- treespp3 %>%
+treespp4 <- treespp3 %>%
     left_join(flora) %>%
 dplyr::select(1:12, -c(13:37), 38:40, -c(41:46),47:49, -c(50:55))
-names(treesp4)
-write.csv(treesp4, "./results/names_flora.csv")
+names(treespp4)
+
+# Exportar a planilha de espécies com informações do Flora do Brasil-IPT
+write.csv(treespp4, "./results/names_flora.csv")
 treesp4$nombre
 fl <- read.csv("./results/names_flora.csv")
 names(fl)
