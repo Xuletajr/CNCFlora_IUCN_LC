@@ -61,7 +61,11 @@ unique(tabela_inpa_splink$institutioncode)
 tabela_inpa_splink <- tabela_inpa_splink %>%
     mutate(institutioncode = "Instituto Nacional de Pesquisas da Amazônia (INPA)")
 #todos os coletores do inpa
-colectores_inpa <- tabela_inpa_splink %>% dplyr::select(institutioncode, catalognumber, collector) %>% mutate(collector = as.character(collector)) %>% rename(catalogNumber = catalognumber, institutionCode = institutioncode)
+colectores_inpa <- tabela_inpa_splink %>% 
+dplyr::select(institutioncode, catalognumber, collector) %>% 
+mutate(collector = as.character(collector)) %>% 
+rename(catalogNumber = catalognumber, institutionCode = institutioncode)
+
 class(colectores_inpa$catalogNumber)
 #loop----
 for (i in 1:length(especies)) {
