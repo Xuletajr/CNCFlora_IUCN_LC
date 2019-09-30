@@ -1,31 +1,37 @@
-#Reads and formats FdB----
+### Formatar a distribuição e forma de vida das plantas do flora do Brasil 
+
+# Ler os pacotes 
 library(readr)
 library(dplyr)
-##distribution----
-distribution  <-
-    read_delim("./ipt/distribution.txt", delim = "\t", quote = "") %>%
-     group_by(id) %>%
-     mutate(location = paste(locationID, collapse = "-")) %>%
-     dplyr::select(-locationID) %>% distinct() %>% ungroup()
 library(tidyr)
 library(stringr)
 library(jsonlite)
+source("./functions/change_NA_to_df.R") # https://github.com/AndreaSanchezTapia/CNCFlora_IUCN_LC/blob/master/scripts/change_NA_to_df.R
+
+# Baixar dados do Flora do Brasil (IPT0 -- primeiro 
+# library("downloader")
+# pag <- "http://ipt.jbrj.gov.br/jbrj/archive.do?r=lista_especies_flora_brasil"
+# download(url = pag, destfile = "iptflora")
+# unzip("iptflora",exdir = "./ipt") # salvar em pasta "ipt" dentro da pasta de trabalho
+
+# Modificar occurrenceRemarks da distribuição----
+distribution  <- read_delim("./ipt/distribution.txt", delim = "\t", quote = "") %>%
+     group_by(id) %>%
+     mutate(location = paste(locationID, collapse = "-")) %>%
+     dplyr::select(-locationID) %>% distinct() %>% ungroup()
+
 names(distribution)
+
 ocurrence_remarks <- distribution %>%
     dplyr::select(occurrenceRemarks) %>%
-     #slice(10000:10100) %>%
      data.frame() %>%
-     #pull() %>%
      mutate(occurrenceRemarks = as.character(occurrenceRemarks))
-head(ocurrence_remarks)#
-source("./scripts/change_NA_to_df.R")
-occurrenceRemarks_df <-
-     purrr::map(ocurrence_remarks$occurrenceRemarks,
-                ~data.frame(jsonlite::fromJSON(.))) %>%
-     #purrr::map(., ~ifelse(is.null(dim(.)), ,)
-     purrr::map(.,
-                ~ mutate(.,
-                         om = paste(.$endemism, .$phytogeographicDomain,
+
+head(ocurrence_remarks)
+
+occurrenceRemarks_df <- purrr::map(ocurrence_remarks$occurrenceRemarks,
+                                   ~data.frame(jsonlite::fromJSON(.))) %>%
+     purrr::map(., ~ mutate(., om = paste(.$endemism, .$phytogeographicDomain,
                                     sep = "/"))) %>%
      purrr::map( ~ mutate(., om_all = paste(om, collapse = "-"))) %>%
      purrr::map( ~ dplyr::select(., om_all)) %>%
@@ -34,22 +40,28 @@ occurrenceRemarks_df <-
 
 omdf <- bind_rows(occurrenceRemarks_df,.id = "sp")
 omdf[10031:10033,]
-#
+
 head(distribution)
+
+# Distribuição com occurrenceRemarks modificadas
 distribution_mod <- distribution %>% mutate(occurrenceRemarks = omdf$om_all)
 head(distribution_mod)
-write.csv(distribution_mod, "./ipt/distribution_modified.csv")
 
+# Exportar planilha csv com a distribuição modificada
+write.csv(distribution_mod, "./ipt/distribution_modified.csv", fileEncoding = "UTF-8")
 
-###lifeform
-lf_habitat <-
-    read_delim("./ipt/speciesprofile.txt", delim = "\t", quote = "")
+# Modificar lifeform
+lf_habitat <- read_delim("./ipt/speciesprofile.txt", delim = "\t", quote = "",
+                         locale = locale(encoding = "UTF-8"))
+
 names(lf_habitat)
 head(lf_habitat)
+
 lf_habitat %>% filter(!is.na(lifeForm)) %>% head
 lf <- list()
 hab <- list()
 veg <- list()
+
 for (i in seq_along(lf_habitat$lifeForm)) {
     lf[[i]] <- data.frame(id = lf_habitat$id[i], lifeForm = NA)
     hab[[i]] <- data.frame(id = lf_habitat$id[i], habitat = NA)
@@ -61,28 +73,36 @@ for (i in seq_along(lf_habitat$lifeForm)) {
         if ("vegetationType" %in% names(jason)) veg[[i]] <- data.frame(id = lf_habitat$id[i], vegetationType = jason["vegetationType"])
         }
     }
+
 head(lf)
 head(veg)
 head(hab)
+
 lf2 <- lf %>%
     purrr::map(~ mutate(., lifeForm = paste(lifeForm, collapse = "-"))) %>%
     purrr::map(~distinct(.))
+
 lf3 <- bind_rows(lf2)
+
 veg2 <- veg %>%
     purrr::map(~ mutate(., vegetationType = paste(vegetationType, collapse = "-"))) %>%
     purrr::map(~distinct(.))
+
 veg3 <- bind_rows(veg2)
 
 hab2 <- hab %>%
     purrr::map(~ mutate(., habitat = paste(habitat, collapse = "-"))) %>%
     purrr::map(~distinct(.))
+
 hab3 <- bind_rows(hab2)
 
 lf_hab <- lf3 %>% left_join(veg3) %>% left_join(hab3)
 lf_habitat %>%
     #filter(!is.na(lifeForm)) %>%
     head(.)
+
 lf_hab %>%
-    #filter(lifeForm != "NA") %>%
     head(.)
-write.csv(lf_hab, "./ipt/lf_hab_modified.csv")
+
+# Exportar planilha csv com a forma de vida das árvores modificada
+write.csv(lf_hab, "./ipt/lf_hab_modified.csv", fileEncoding = "UTF-8)
