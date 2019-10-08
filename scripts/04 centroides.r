@@ -1,7 +1,7 @@
 # carrega pacotes
 library(dplyr)
-library("stringr")
-library("rgbif")
+library(stringr)
+library(rgbif)
 library(readxl)
 library(textclean)
 library(flora)
