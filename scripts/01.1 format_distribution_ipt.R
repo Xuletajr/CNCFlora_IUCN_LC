@@ -1,20 +1,25 @@
-### Formatar a distribuição e forma de vida das plantas do flora do Brasil 
+####################################################################################################
+   ###                Baixar dados do Projeto Flora do Brasil 2020 (IPT)                      ###
+   ###              e formatar a distribuição e forma de vida das plantas                     ###               
+####################################################################################################
 
-# Ler os pacotes 
+# Ler pacotes 
 library(readr)
 library(dplyr)
 library(tidyr)
 library(stringr)
 library(jsonlite)
-source("./functions/change_NA_to_df.R") # https://github.com/AndreaSanchezTapia/CNCFlora_IUCN_LC/blob/master/scripts/change_NA_to_df.R
+library(downloader)
+source("./functions/change_NA_to_df.R")
+# Função disponível no GitHub de Andrea S. Tapia:
+# https://github.com/AndreaSanchezTapia/CNCFlora_IUCN_LC/blob/master/scripts/change_NA_to_df.R
 
-# Baixar dados do Flora do Brasil (IPT0 -- primeiro 
-# library("downloader")
-# pag <- "http://ipt.jbrj.gov.br/jbrj/archive.do?r=lista_especies_flora_brasil"
-# download(url = pag, destfile = "iptflora")
-# unzip("iptflora",exdir = "./ipt") # salvar em pasta "ipt" dentro da pasta de trabalho
+# Baixar dados do Flora do Projeto Flora do Brasil 2020 (IPT)---
+pag <- "http://ipt.jbrj.gov.br/jbrj/archive.do?r=lista_especies_flora_brasil"
+download(url = pag, destfile = "iptflora", mode = "wb") # Para sistema operacional windows só funciona com mode = "wb"
+unzip("iptflora", exdir = "./ipt") # salvar em pasta "ipt" dentro da pasta de trabalho
 
-# Modificar occurrenceRemarks da distribuição----
+# Formatar distribuição das espécies flora---
 distribution  <- read_delim("./ipt/distribution.txt", delim = "\t", quote = "") %>%
      group_by(id) %>%
      mutate(location = paste(locationID, collapse = "-")) %>%
@@ -39,7 +44,6 @@ occurrenceRemarks_df <- purrr::map(ocurrence_remarks$occurrenceRemarks,
      purrr::map(., .f = ~change_others_to_dataframe(.))
 
 omdf <- bind_rows(occurrenceRemarks_df,.id = "sp")
-omdf[10031:10033,]
 
 head(distribution)
 
@@ -57,10 +61,7 @@ lf_habitat <- read_delim("./ipt/speciesprofile.txt", delim = "\t", quote = "",
 names(lf_habitat)
 head(lf_habitat)
 
-lf_habitat %>% filter(!is.na(lifeForm)) %>% head
-lf <- list()
-hab <- list()
-veg <- list()
+lf <- list(); hab <- list(); veg <- list()
 
 for (i in seq_along(lf_habitat$lifeForm)) {
     lf[[i]] <- data.frame(id = lf_habitat$id[i], lifeForm = NA)
